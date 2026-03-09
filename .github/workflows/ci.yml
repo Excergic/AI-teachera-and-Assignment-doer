@@ -1,4 +1,3 @@
-# CI: lint, test, and build frontend + backend (validates before Vercel deploy)
 name: CI
 
 on:
@@ -6,10 +5,6 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-
-env:
-  NODE_VERSION: "20"
-  PYTHON_VERSION: "3.12"
 
 jobs:
   frontend:
@@ -21,14 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          # Omit cache when package-lock.json is not committed to avoid "unable to cache dependencies" error
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -36,11 +32,9 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
-          CLERK_SECRET_KEY: sk_test_placeholder
-          NEXT_PUBLIC_API_URL: https://api.placeholder.com
+          # Use repo secrets/vars if set; otherwise placeholders so CI passes without config
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://example.com' }}
 
   backend:
     name: Backend
@@ -51,29 +45,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
-          enable-cache: true
-          cache-dependency-glob: "backend/uv.lock"
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --frozen
 
-      - name: Lint (ruff)
-        run: uv run ruff check . --output-format=github
-        continue-on-error: true
-
-      - name: Type check (pyright)
-        run: uv run pyright .
-        continue-on-error: true
-
-      - name: Export requirements (for Vercel)
-        run: |
-          uv export --no-dev --no-hashes -o requirements.txt
-          sed -i '/^-e \.\s*$/d' requirements.txt || true
+      - name: Verify app
+        run: uv run python -c "from main import app; print('OK')"
+        env:
+          OPENAI_API_KEY: "sk-placeholder"
+          SUPABASE_URL: "https://placeholder.supabase.co"
+          SUPABASE_SERVICE_ROLE_KEY: "placeholder"

@@ -1,0 +1,21 @@
+# Render Blueprint: backend only. Connect repo and deploy.
+# Frontend: deploy separately on Vercel (connect repo, root directory = frontend).
+
+services:
+  - type: web
+    name: studybuddy-api
+    runtime: python
+    rootDir: backend
+
+    plan: free
+
+    buildCommand: pip install uv && uv sync --frozen
+    startCommand: uv run uvicorn main:app --host 0.0.0.0 --port $PORT
+
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
