@@ -7,28 +7,16 @@ export const metadata: Metadata = {
   description: "AI study assistant for computer engineering",
 };
 
-// When using placeholder keys (e.g. CI), skip static prerender so Clerk is never initialized
-const isPlaceholderClerkKey =
-  !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === "pk_test_placeholder";
-
-// Avoid prerendering when Clerk key is placeholder (e.g. CI build)
-export const dynamic = isPlaceholderClerkKey ? "force-dynamic" : undefined;
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const content = (
-    <html lang="en">
-      <body className="antialiased">{children}</body>
-    </html>
+  return (
+    <ClerkProvider>
+      <html lang="en">
+        <body className="antialiased">{children}</body>
+      </html>
+    </ClerkProvider>
   );
-
-  if (isPlaceholderClerkKey) {
-    return content;
-  }
-
-  return <ClerkProvider>{content}</ClerkProvider>;
 }
