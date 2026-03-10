@@ -47,6 +47,16 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+def root():
+    """So opening the Render URL in a browser shows API is up (GET / used to 404)."""
+    return {
+        "service": "StudyBuddy API",
+        "health": "GET /health",
+        "ask": "POST /api/ask with JSON body {\"question\": \"...\"}",
+    }
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}

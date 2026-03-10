@@ -17,7 +17,11 @@ const SUGGESTIONS = [
   "How does photosynthesis work?",
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Must be origin only, no path: https://your-api.onrender.com (no trailing slash, no /api)
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(
+  /\/+$/,
+  ""
+);
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -46,7 +50,14 @@ export default function Home() {
           : typeof detail === "string"
             ? detail
             : `Request failed: ${res.status}`;
-        throw new Error(message || `Request failed: ${res.status}`);
+        const base = message || `Request failed: ${res.status}`;
+        // 404 usually means wrong API base URL (e.g. NEXT_PUBLIC_API_URL must be origin only, no /api)
+        if (res.status === 404) {
+          throw new Error(
+            `${base}. Check Vercel env NEXT_PUBLIC_API_URL is exactly your Render URL (e.g. https://studybuddy-api-x4s8.onrender.com) with no path or trailing slash.`
+          );
+        }
+        throw new Error(base);
       }
       const data = await res.json();
       setResult({ question: q, answer: data.answer });

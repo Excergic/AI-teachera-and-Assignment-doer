@@ -20,7 +20,7 @@
 4. **Environment variables** (Settings → Environment Variables):
    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` – from [Clerk Dashboard](https://dashboard.clerk.com)
    - `CLERK_SECRET_KEY` – from Clerk Dashboard
-   - `NEXT_PUBLIC_API_URL` – your **backend URL** (e.g. `https://studybuddy-api.onrender.com`). Set this after the backend is deployed.
+   - `NEXT_PUBLIC_API_URL` – your **backend URL** only (e.g. `https://studybuddy-api-x4s8.onrender.com`). **No trailing slash, no `/api`** — the app adds `/api/ask` itself. Wrong value → frontend shows “Not Found”.
 5. Deploy. Vercel will run `npm run build` and deploy.
 
 ---
